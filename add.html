@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Clinic Appointments</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            margin: 30px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        form {
+            width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            margin: 30px auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h2>Clinic Appointment System</h2>
+
+<form id="appointmentForm">
+
+    <label>Appointment Date</label>
+    <input type="date" id="date" required>
+
+    <label>Time</label>
+    <input type="text" id="time" placeholder="10:00 AM" required>
+
+    <label>Select Doctor</label>
+
+    <select id="doctorId" required>
+
+        <option value="">
+            Select Doctor
+        </option>
+
+    </select>
+
+    <button type="submit">
+        Add Appointment
+    </button>
+
+</form>
+
+<script>
+
+function loadDoctors() {
+    fetch("/ClinicSystem/api/doctors")
+    .then(response => response.json())
+    .then(data => {
+        const doctorSelect = document.getElementById("doctorId");
+        
+        if (data.length > 0 && data[0].error) {
+            console.error("Database Exception Error:", data[0].error);
+            doctorSelect.innerHTML = `<option value="">Error: ${data[0].error}</option>`;
+            return;
+        }
+
+        doctorSelect.innerHTML = '<option value="">-- Select Doctor --</option>';
+        data.forEach(doctor => {
+            let option = document.createElement("option");
+            option.value = doctor.id;
+            option.text = doctor.name;
+            doctorSelect.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error("Critical Connection Error:", error);
+        document.getElementById("doctorId").innerHTML = '<option value="">Error loading doctor index</option>';
+    });
+}
+
+loadDoctors();
+
+document
+.getElementById("appointmentForm")
+
+.addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const appointment = {
+
+        appointment_date:
+            document.getElementById("date").value,
+
+        time:
+            document.getElementById("time").value,
+
+        doctor_id:
+            document.getElementById("doctorId").value
+    };
+
+    const API_URL = "/ClinicSystem/api/appointments";
+
+    fetch("/ClinicSystem/api/appointments", {
+        method: "POST",
+        headers: {
+            "Content-Type":
+                "application/x-www-form-urlencoded"
+        },
+        body:
+            "appointment_date=" +
+            encodeURIComponent(appointment.appointment_date)
+
+            + "&time=" +
+            encodeURIComponent(appointment.time)
+
+            + "&doctor_id=" +
+            encodeURIComponent(appointment.doctor_id)
+    })
+
+    .then(response => response.text())
+
+    .then(data => {
+
+        alert(data);
+
+        loadAppointments();
+
+        document
+            .getElementById("appointmentForm")
+            .reset();
+    })
+
+    .catch(error =>
+        console.log(error)
+    );
+
+});
+
+</script>
+
+</body>
+
+</html>
